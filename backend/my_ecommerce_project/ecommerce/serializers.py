@@ -37,19 +37,23 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = '__all__'
 
+
 class ProductUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ["price"]
-        
+
     def validate(self, data):
         product = self.instance
         if product.status != "on-sale":
-            raise serializers.ValidationError("can not update price of a sold product")
+            raise serializers.ValidationError(
+                "can not update price of a sold product")
         return data
+
 
 class CartItemSerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
+
     class Meta:
         model = CartItem
         fields = ['product']
@@ -60,8 +64,7 @@ class CartSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Cart
-        fields = ['id','user','items']
-        
+        fields = ['id', 'user', 'items']
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -81,7 +84,7 @@ class OrderSerializer(serializers.ModelSerializer):
 class ProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['title', 'Description', 'price']
+        fields = ['title', 'description', 'price']
 
     def create(self, validated_data):
         request = self.context.get('request', None)

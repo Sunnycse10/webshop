@@ -109,7 +109,7 @@ class PayView(APIView):
         order = Order.objects.create(
             user=user,
             total_price=cart.get_cart_total,
-            status= "completed")
+            status="completed")
 
         for item in cart_items:
             OrderItem.objects.create(

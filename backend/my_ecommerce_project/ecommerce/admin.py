@@ -4,16 +4,10 @@ from django.contrib.auth.admin import UserAdmin
 from .forms import *
 # Register your models here.
 
+class CustomAdmin(admin.ModelAdmin):
+    list_display = ('id', '__str__')  
 
-# class UserAdmin(UserAdmin):
-#     add_form = UserCreationForm
-#     form = UserChangeForm
-#     model = User
-#     list_display = ["email", "username",]
-    
-    
-# admin.site.register(User)
-admin.site.register(Product)
+admin.site.register(Product,CustomAdmin)
 admin.site.register(Order)
 admin.site.register(OrderItem)
 admin.site.register(ShippingAddress)

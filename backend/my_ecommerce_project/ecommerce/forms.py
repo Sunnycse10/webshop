@@ -1,13 +1,3 @@
-#from django import forms
-#from django.contrib.auth.forms import UserCreationForm
-#from .models import Customer
-
-#class UserRegistrationForm(UserCreationForm):
-#    email = forms.EmailField(required=True)
-#    class Meta:
-#        model = Customer
-#        fields = ['email',  'password1', 'password2']
-
 from typing import Any
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm

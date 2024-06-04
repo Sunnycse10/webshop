@@ -19,4 +19,5 @@ urlpatterns = [
     path('api/products/<int:pk>/update/',
          ProductUpdateView.as_view(), name='product-update'),
     path('api/populate-db/', PopulateDatabaseView.as_view(), name='populate-db'),
+    path('api/pay/', PayView.as_view(), name='pay'),
 ]

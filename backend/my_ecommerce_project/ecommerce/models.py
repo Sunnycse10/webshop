@@ -8,15 +8,6 @@ from django.contrib.auth.models import User
 # Create your models here.
 
 
-# class User(AbstractUser):
-#     email = models.EmailField(_('email address'), unique=True)
-
-#     def __str__(self):
-#         return self.username
-#     USERNAME_FIELD = 'email'
-#     REQUIRED_FIELDS = ['username']
-
-
 class Product(models.Model):
     STATUS_CHOICES = [
         ('on-sale', 'On Sale'),
@@ -53,10 +44,15 @@ class Product(models.Model):
 
 
 class Order(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'pending'),
+        ('completed', 'completed')
+    ]
     user = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True)
     date_ordered = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, default='Completed')
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='pending')
     total_price = MoneyField(
         decimal_places=2,
         default=0,
@@ -67,12 +63,6 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order {self.id} by {self.user.username}"
-
-    @property
-    def get_cart_total(self):
-        orderItems = self.orderitem_set.all()
-        total = sum([item.product.price for item in orderItems])
-        return total
 
     @property
     def get_total_cart_items(self):
@@ -102,11 +92,23 @@ class Cart(models.Model):
     def __str__(self):
         return f"Cart of {self.user.username}"
 
+    @property
+    def get_cart_total(self):
+        cart_items = self.items.all()
+        total = sum([item.product.price for item in cart_items])
+        return total
+
 
 class CartItem(models.Model):
     cart = models.ForeignKey(
         Cart, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    price_at_addition = MoneyField(
+        decimal_places=2,
+        default=0,
+        default_currency='EUR',
+        max_digits=11,
+    )
     date_added = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

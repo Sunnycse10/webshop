@@ -1,8 +1,6 @@
 from . models import *
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework import generics
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from .serializers import *
 from .filters import ProductFilter
@@ -43,7 +41,11 @@ class AddToCartView(generics.UpdateAPIView):
             cart, created = Cart.objects.get_or_create(user=request.user)
             if CartItem.objects.filter(cart=cart, product=product).exists():
                 return Response({"detail": "Product already exists in the cart"}, status=status.HTTP_400_BAD_REQUEST)
-            cart_item = CartItem.objects.create(cart=cart, product=product)
+            cart_item = CartItem.objects.get_or_create(
+                cart=cart,
+                product=product,
+                defaults={'price_at_addition': product.price}
+            )
             return Response({"detail": "Product added to cart."}, status=status.HTTP_200_OK)
         except product.DoesNotExist:
             return Response({"detail": "Product not found"}, status=status.HTTP_400_BAD_REQUEST)
@@ -77,6 +79,53 @@ class CartView(generics.RetrieveAPIView):
         user = self.request.user
         cart, created = Cart.objects.get_or_create(user=user)
         return cart
+
+
+class PayView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        user = request.user
+        cart = Cart.objects.get(user=user)
+        cart_items = cart.items.all()
+
+        price_changes = []
+        unavailable_items = []
+
+        for item in cart_items:
+            if item.product.price != item.price_at_addition:
+                price_changes.append(item.product)
+                item.price_at_addition = item.product.price
+                item.save()
+            elif item.product.status != 'on-sale':
+                unavailable_items.append(item.product)
+
+        if price_changes or unavailable_items:
+            return Response({
+                'price_changes': ProductSerializer(price_changes, many=True).data,
+                'unavailable_items': ProductSerializer(unavailable_items, many=True).data
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        order = Order.objects.create(
+            user=user,
+            total_price=cart.get_cart_total,
+            status= "completed")
+
+        for item in cart_items:
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                price_at_purchase=item.product.price,
+
+            )
+            item.product.status = 'sold'
+            item.product.buyer = user
+            item.product.save()
+
+        cart.items.all().delete()
+        return Response({'detail': 'payment is successful and items are purchased',
+                        'orders': OrderSerializer(order).data
+                         }, status=status.HTTP_201_CREATED)
 
 
 class ProductListView(generics.ListAPIView):

@@ -15,7 +15,6 @@ backend/my_ecommerce_project/ecommerce/__pycache__/
 backend/my_ecommerce_project/my_ecommerce_project/__pycache__/
 
 #media
-*.jpg
 #C_files
 *.so
 

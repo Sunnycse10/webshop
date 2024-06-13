@@ -126,3 +126,9 @@ class ShippingAddressSerializer(serializers.ModelSerializer):
             validated_data["user"] = request.user
 
         return super().create(validated_data)
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email']

@@ -46,7 +46,8 @@ class AddToCartView(generics.UpdateAPIView):
                 product=product,
                 defaults={'price_at_addition': product.price}
             )
-            return Response({"detail": "Product added to cart."}, status=status.HTTP_200_OK)
+            serializer = CartSerializer(cart)
+            return Response({"detail": "Product added to cart.", "cart": serializer.data}, status=status.HTTP_200_OK)
         except product.DoesNotExist:
             return Response({"detail": "Product not found"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -95,8 +96,8 @@ class PayView(APIView):
         for item in cart_items:
             if item.product.price != item.price_at_addition:
                 price_changes.append(item.product)
-                item.price_at_addition = item.product.price
-                item.save()
+                #item.price_at_addition = item.product.price
+                #item.save()
             elif item.product.status != 'on-sale':
                 unavailable_items.append(item.product)
 
@@ -142,6 +143,18 @@ class ProductListView(generics.ListAPIView):
     #         return Product.objects.exclude(seller=user)
     #     else:
     #         return Product.objects.all()
+    
+class ProductView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, productId,format=None):
+        try:
+            product = Product.objects.get(id=productId)
+            serializer = ProductSerializer(product)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except:
+            return Response({'error': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+    
 
 
 class ProductCreateView(generics.CreateAPIView):
@@ -221,3 +234,10 @@ class ShippingAddressView(generics.CreateAPIView):
     queryset = Product.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = ShippingAddressSerializer
+
+class UserDetailsView(generics.RetrieveAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user

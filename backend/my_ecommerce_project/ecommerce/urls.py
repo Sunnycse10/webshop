@@ -20,4 +20,6 @@ urlpatterns = [
          ProductUpdateView.as_view(), name='product-update'),
     path('api/populate-db/', PopulateDatabaseView.as_view(), name='populate-db'),
     path('api/pay/', PayView.as_view(), name='pay'),
+    path('api/product/<int:productId>/', ProductView.as_view(), name='product details'),
+    path('api/user/', UserDetailsView.as_view(), name='user-details'),
 ]

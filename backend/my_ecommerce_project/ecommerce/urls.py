@@ -22,4 +22,6 @@ urlpatterns = [
     path('api/pay/', PayView.as_view(), name='pay'),
     path('api/product/<int:productId>/', ProductView.as_view(), name='product details'),
     path('api/user/', UserDetailsView.as_view(), name='user-details'),
+    path('',landing_page, name="landing page"),
+    path('populate_database/', populate_database, name ="populate_database"),
 ]

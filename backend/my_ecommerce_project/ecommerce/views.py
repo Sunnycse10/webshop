@@ -14,6 +14,7 @@ from django.views import View
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.shortcuts import render
 
 
 # Create your views here.
@@ -228,6 +229,50 @@ class PopulateDatabaseView(View):
                     )
 
         return JsonResponse({"message": "database populated with test data"})
+    
+
+def populate_database(request):
+    if request.method == "POST":
+        try:
+            # Clear existing data
+            User.objects.all().delete()
+            Product.objects.all().delete()
+
+            # Create users and products
+            for i in range(6):
+                base_username = f"testuser{i+1}"
+                username = base_username
+                count = 1
+                while User.objects.filter(username=username).exists():
+                    username = f"{base_username}_{count}"
+                    count += 1
+
+                email = f"{username}@shop.aa"
+                password = f"pass{i+1}"
+                
+                user = User.objects.create_user(
+                    username=username, email=email, password=password)
+
+                if i < 3:
+                    for j in range(10):
+                        Product.objects.create(
+                            title=f"product {j+1} from {username}",
+                            description=f"description for product {j+1}",
+                            price=f"{(j+1)*10}.00",
+                            seller=user
+                        )
+
+            return JsonResponse({"message": "Database populated with test data"})
+        
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+        
+    
+    
+    
+def landing_page(request):
+    context = {}
+    return render(request, 'main.html', context)
 
 
 class ShippingAddressView(generics.CreateAPIView):

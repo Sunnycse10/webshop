@@ -34,7 +34,7 @@ function Cart() {
                 const data = await res.json();
                 setCartItems(data.items || []);
                 console.log(data.items);
-                updateCartCount(data.items.length || 0 );
+                updateCartCount(data.items.length || 0);
                 setCartTotal(data.items.reduce((sum, item) => sum + Number(item.product.price), 0))  // Update cart count
                 setLoading(false);
             } catch (error) {
@@ -100,7 +100,7 @@ function Cart() {
                     setSoldItems(data.unavailable_items || []);
                     setCheckoutError("Status of some items are changes, please review your cart");
                     debugger;
-                    
+
                 }
                 else {
                     throw new Error("Failed to complete checkout");
@@ -121,7 +121,7 @@ function Cart() {
 
         } catch (error) {
             setError(error.message);
-            }
+        }
 
     }
 
@@ -170,7 +170,7 @@ function Cart() {
                                     </th>
                                     <th>
                                         <div>
-                                            <button className="btn btn-success" style={{ float: 'right', margin: '5px' }} onClick={()=> handlePay()}>
+                                            <button className="btn btn-success" style={{ float: 'right', margin: '5px' }} onClick={() => handlePay()}>
                                                 Checkout
                                             </button>
                                         </div>
@@ -201,7 +201,7 @@ function Cart() {
                                     {isSold(item.product.id) && (<p className="text-warning">Product not available!</p>)}
 
                                 </div>
-                                <div style={{ flex: 1 }} > <button className="btn btn-danger" onClick={()=>removeCart(item.product.id)}>
+                                <div style={{ flex: 1 }} > <button className="btn btn-danger" onClick={() => removeCart(item.product.id)}>
                                     Remove
                                 </button></div>
                             </div>))}

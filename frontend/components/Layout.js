@@ -13,7 +13,7 @@ const Layout = ({ children }) => {
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-  const { cartCount,resetCartCount } = useContext(CartContext);
+  const { cartCount, resetCartCount } = useContext(CartContext);
 
   const toggleDropdown = (e) => {
     e.preventDefault();
@@ -44,7 +44,7 @@ const Layout = ({ children }) => {
     // Perform search action, e.g., redirect to a search results page
     router.push(`/search?query=${searchQuery}`);
   };
-  const populateDB = async(e) => {
+  const populateDB = async (e) => {
     e.preventDefault();
     const res = await fetch("http://localhost:8000/api/populate-db/", {
       method: 'POST', // Assuming it's a POST request
@@ -52,13 +52,12 @@ const Layout = ({ children }) => {
         'Content-Type': 'application/json',
       }
     });
-    if (res.ok)
-    {
+    if (res.ok) {
       const message = await res.json();
       alert(message.message);
       handleLogout();
-      
-      }
+
+    }
 
   }
 
@@ -86,21 +85,21 @@ const Layout = ({ children }) => {
                 <a className="nav-link text-warning" type="submit" onClick={populateDB}>
                   Populate DB
                 </a>
-               
+
               </li>
               {user && (
                 <>
-                <li className="nav-item">
-                  <Link href="/myitems" passHref>
-                    <span className="nav-link">My Items</span>
-                  </Link>
+                  <li className="nav-item">
+                    <Link href="/myitems" passHref>
+                      <span className="nav-link">My Items</span>
+                    </Link>
                   </li>
                   <li className="nav-item">
-                  <Link href="/addItem" passHref>
-                    <span className="nav-link">Add Item</span>
-                  </Link>
+                    <Link href="/addItem" passHref>
+                      <span className="nav-link">Add Item</span>
+                    </Link>
                   </li>
-                  </>
+                </>
 
               )}
               {user && (
@@ -123,20 +122,20 @@ const Layout = ({ children }) => {
                 </li>
               )}
               <li className='nav-item'>
-              <form id="searchbar" className="d-flex" onSubmit={handleSearch}>
-                <input name="search"
-                  className="form-control me-2"
-                  type="search"
-                  placeholder="Search"
-                  aria-label="Search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                <form id="searchbar" className="d-flex" onSubmit={handleSearch}>
+                  <input name="search"
+                    className="form-control me-2"
+                    type="search"
+                    placeholder="Search"
+                    aria-label="Search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
-                <button className="btn btn-warning" type="submit">
-                  Search
-                </button>
+                  <button className="btn btn-warning" type="submit">
+                    Search
+                  </button>
                 </form>
-                </li>
+              </li>
             </ul>
             <div className="d-flex">
               {user ? (
@@ -147,7 +146,7 @@ const Layout = ({ children }) => {
                 </Link>
               )}
               <Link href="/cart">
-                <img id="cart-icon" src="cart.png" alt="Cart"/>
+                <img id="cart-icon" src="cart.png" alt="Cart" />
               </Link>
               <p id="cart-total">{cartCount}</p>
             </div>

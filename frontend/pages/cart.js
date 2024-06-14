@@ -3,6 +3,7 @@ import { useState, useContext, useEffect } from 'react';
 import { Router, useRouter } from 'next/router';
 import { CartContext } from '../contexts/CartContext';
 import Link from "next/link";
+import ProductImage from "../components/productImage";
 
 function Cart() {
     const [cartItems, setCartItems] = useState([]);
@@ -187,14 +188,14 @@ function Cart() {
                     <br />
                     <div className="box-element">
                         <div className="cart-row">
-                            <div style={{ flex: 1 }}></div>
-                            <div style={{ flex: 2 }}><strong>Item</strong></div>
+                            <div style={{ flex: 1 }}><strong>Title</strong></div>
+                            <div style={{ flex: 2 }}><strong>Description</strong></div>
                             <div style={{ flex: 2 }}><strong>Price</strong></div>
                             <div style={{ flex: 1 }}><strong>Remove Item</strong></div>
                         </div>
                         {cartItems && cartItems.length > 0 && cartItems.map((item) => (
                             <div className="cart-row" key={item.product.id}>
-                                <div style={{ flex: 1 }}><img className="row-image" src="R.jpg" /></div>
+                                <div style={{ flex: 1 }}><p>{item.product.title}</p></div>
                                 <div style={{ flex: 2 }}><p>{item.product.title}</p></div>
                                 <div style={{ flex: 2 }}><p>{item.product.price}</p>
                                     {hasPriceChanged(item.product.id) && (<p className="text-warning">Price has changed!</p>)}

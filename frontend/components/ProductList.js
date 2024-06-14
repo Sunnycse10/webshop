@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Head from 'next/head';
 import { useContext } from 'react';
 import { CartContext } from '../contexts/CartContext';
-
+import ProductImage from './productImage';
 import { useState, useEffect, MouseEvent } from 'react';
 import { useRouter } from 'next/router';
 import '../styles/main.css';
@@ -78,15 +78,16 @@ const ProductList = ({ products }) => {
     <div className="row">
       {products.map(product => (
         <div className="col-lg-4" key={product.id}>
-          <img className="thumbnail" src="R.jpg" alt="R.jpg" />
+          {/* <img className="thumbnail" src="R.jpg" alt="R.jpg" /> */}
           <div className="box-element product">
-            <h6><strong>{product.title}</strong></h6>
+          <ProductImage product={product}></ProductImage>
+            {/* <h6><strong>{product.title}</strong></h6> */}
             <hr />
             {product.status === "on-sale" ? <button className="btn btn-outline-secondary bt-add" onClick={() => addToCart(product.id)}>Add to cart</button> :
               <span>Sold out</span>}
             {user && user.id === product.seller && product.status === "on-sale" &&
               <Link className="btn btn-outline-success" href={{ pathname: '/product', query: { product: JSON.stringify(product.id) } }}>Edit</Link>}
-            <h4 style={{ display: 'inline - block', float: 'right' }}><strong>{product.price}</strong></h4>
+            <h4 style={{ display: 'inline - block', float: 'right' }}><strong>{`${product.price} ${product.price_currency}`}</strong></h4>
           </div>
         </div>))}
     </div>

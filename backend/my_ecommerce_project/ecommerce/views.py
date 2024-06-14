@@ -281,7 +281,7 @@ class ShippingAddressView(generics.CreateAPIView):
     serializer_class = ShippingAddressSerializer
 
 class UserDetailsView(generics.RetrieveAPIView):
-    serializer_class = UserSerializer
+    serializer_class = UserRetrieveSerializer
     permission_classes = [IsAuthenticated]
 
     def get_object(self):

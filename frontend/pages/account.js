@@ -12,6 +12,11 @@ const editAccount = () => {
         debugger;
         e.preventDefault();
         const authenticatedUser = JSON.parse(localStorage.getItem('user'));
+        if (!authenticatedUser)
+        {
+            router.push("/login")
+            return;
+            }
         const res = await fetch('http://localhost:8000/api/change-password/', {
             method: 'POST',
             headers: {

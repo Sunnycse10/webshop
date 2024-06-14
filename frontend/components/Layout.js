@@ -108,7 +108,7 @@ const Layout = ({ children }) => {
                     Edit
                   </a>
                   <div className={`dropdown-menu ${isOpen ? 'show' : ''}`} aria-labelledby="navbarDropdown">
-                    <Link className="dropdown-item" href="/editAccount">Edit Acount </Link>
+                    <Link className="dropdown-item" href="/account">Edit Acount </Link>
                     <a className="dropdown-item" href="#">Add more feature </a>
                   </div>
                   {isOpen && (

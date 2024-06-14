@@ -128,7 +128,7 @@ class ShippingAddressSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email']

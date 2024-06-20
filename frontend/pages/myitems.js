@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import Layout from '../components/Layout';
 import ProductList from '../components/ProductList';
 import { useSession } from 'next-auth/react';

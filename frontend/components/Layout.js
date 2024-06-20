@@ -1,7 +1,5 @@
 // components/Layout.js
 import Link from 'next/link';
-import Head from 'next/head';
-import { SessionProvider } from 'next-auth/react';
 import { useContext } from 'react';
 import { CartContext } from '../contexts/CartContext';
 import { useSession, signIn, signOut } from "next-auth/react"

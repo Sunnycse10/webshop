@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Head from 'next/head';
 import { useContext } from 'react';
 import { CartContext } from '../contexts/CartContext';
 import ProductImage from './productImage';

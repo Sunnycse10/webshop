@@ -27,29 +27,35 @@ const ProductList = ({ products }) => {
 
 
   const addToCart = async (productId) => {
-    try {
-      const res = await fetch('http://localhost:8000/api/cart/add/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access}`,
+    if (status === 'authenticated') {
+      try {
+        const res = await fetch('http://localhost:8000/api/cart/add/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access}`,
 
-        },
-        body: JSON.stringify({ product_id: productId }),
-      });
+          },
+          body: JSON.stringify({ product_id: productId }),
+        });
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        console.error('Error adding to cart:', errorData.detail || 'Unknown error');
-        toast.error(`${ errorData.detail || 'Unknown error' }`);
-        return;
+        if (!res.ok) {
+          const errorData = await res.json();
+          console.error('Error adding to cart:', errorData.detail || 'Unknown error');
+          toast.error(`${errorData.detail || 'Unknown error'}`);
+          return;
+        }
+        const data = await res.json();
+        setCart(data.cart.items);
+        updateCartCount(data.cart.items.length);
+        toast.success("product added to the cart");
+      } catch (error) {
+        console.log(error);
+        setError(error.message);
       }
-      const data = await res.json();
-      setCart(data.cart.items);
-      updateCartCount(data.cart.items.length);
-      toast.success("product added to the cart");
-    } catch (error) {
-      setError(error.message);
+    }
+    else {
+      router.push("/login");
     }
   };
 

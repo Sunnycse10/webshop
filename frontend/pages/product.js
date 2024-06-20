@@ -1,7 +1,8 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
-
+import { useSession } from 'next-auth/react';
+import { toast } from 'react-toastify';
 const TargetPage = () => {
   const router = useRouter();
   const { product } = router.query;
@@ -9,19 +10,18 @@ const TargetPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [productDetails, setProductDetails] = useState(null);
-    const [price, setPrice] = useState(0);
+  const [price, setPrice] = useState(0);
+  const { data: session, status } = useSession();
 
     useEffect(() => {
         if (product) {
-            console.log(product)
             const fetchProductDetails = async () => {
                 try {
                   const res = await fetch(`http://localhost:8000/api/product/${product}/`);
                   if (!res.ok) {
                     throw new Error('Failed to fetch product details');
                   }
-                    const data = await res.json();
-                    console.log(data);
+                  const data = await res.json();
                   setProductDetails(data);
                   setLoading(false);
                   
@@ -36,23 +36,26 @@ const TargetPage = () => {
     }
     }, [product]);
     
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const authenticatedUser = JSON.parse(localStorage.getItem('user'));
-        const res = await fetch(`http://localhost:8000/api/products/${product}/update/`, {
-            method: "PUT",
-            headers: {
-                'Content-Type': 'application/json',
-                "Authorization": `token ${authenticatedUser.token}`,
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`http://localhost:8000/api/products/${product}/update/`, {
+        method: "PUT",
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": `Bearer ${session.access}`,
 
-            },
-            body: JSON.stringify({price}),
+        },
+        body: JSON.stringify({ price }),
 
-        })
+      })
       if (res.ok) {
-            alert("product updated successfully");
-            router.push("/") ;
-        }
+        toast.success("product updated successfully");
+        router.push("/");
+      }
+    } catch (e) {
+      console.log(e);
+    }
         
     };
 

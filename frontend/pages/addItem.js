@@ -1,27 +1,24 @@
 import Layout from "../components/Layout";
 import { useState } from 'react';
 import { useRouter } from 'next/router';
+import {useSession} from 'next-auth/react'
 
 function AddItem() {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [price, setPrice] = useState(0);
-    const [error, setError] = useState(null);
+  const [error, setError] = useState(null);
+  const { data: session, status } = useSession();
     const router = useRouter();
 
 
     const handleSubmit = async (e) => {
-    const authenticatedUser = JSON.parse(localStorage.getItem('user'));
-    if (!authenticatedUser) {
-        router.push('/login');
-        return;
-    }    
     e.preventDefault();
     const res = await fetch('http://localhost:8000/api/products/create/', {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',
-          'Authorization': `token ${authenticatedUser.token}`,
+          'Authorization': `Bearer ${session.access}`,
         },
       body: JSON.stringify({ title, description, price }),
     });

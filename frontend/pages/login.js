@@ -1,8 +1,10 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import Layout from "../components/Layout";
 import Link from 'next/link';
 import { useRouter } from "next/router";
 import { CartContext } from "../contexts/CartContext";
+import { signIn, useSession } from 'next-auth/react';
+import { toast } from 'react-toastify';
 
 function Login() {
   const [username, setUSername] = useState("")
@@ -10,35 +12,47 @@ function Login() {
   const [error, setError] = useState(null);
   const { cartCount, updateCartCount } = useContext(CartContext);
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    const fetchCartCount = async () => {
+      if (session) {
+        try {
+          const cartRes = await fetch('http://localhost:8000/api/cart', {
+            headers: {
+              'Authorization': `Bearer ${session.access}`,
+            }
+          });
+
+          if (cartRes.ok) {
+            const cartData = await cartRes.json();
+            const cartCount = cartData.items.length;
+            updateCartCount(cartCount);
+          } else {
+            console.error("Failed to fetch cart items.");
+          }
+        } catch (error) {
+          updateCartCount(0);
+          console.error("Error fetching cart items:", error);
+        }
+      }
+    };
+
+    fetchCartCount();
+  }, [session, updateCartCount]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const res = await fetch('http://localhost:8000/api/login/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password }),
+    const res = await signIn('credentials', {
+      username: username,
+      password: password,
+      redirect: false,
     });
-
-    if (res.ok) {
-      const data = await res.json();
-      localStorage.setItem('user', JSON.stringify(data));
-      const cartRes = await fetch('http://localhost:8000/api/cart', {
-        headers: {
-          'Authorization': `token ${data.token}`,
-        }
-      });
-      if (cartRes.ok) {
-        const cartData = await cartRes.json();
-        const cartCount = cartData.items.length;
-        updateCartCount(cartCount);
-      }
-      router.push('/');
+    if (res?.ok) {
+      router.push('/'); // Manually redirect after successful sign-in
     } else {
-      const data = await res.json();
-      setError(data.detail || "Invalid credentials");
+      toast.error("Invalid credentials!");
     }
   };
 

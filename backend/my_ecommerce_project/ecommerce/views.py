@@ -15,6 +15,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.shortcuts import render
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 
 # Create your views here.
@@ -208,52 +209,54 @@ class PopulateDatabaseView(View):
 
     def post(self, request, *args, **kwargs):
         # clear existing data
-        User.objects.all().delete()
-        Product.objects.all().delete()
-
-        # create users and products
-        for i in range(6):
-            username = f"testuser{i+1}"
-            email = f"testuser{i+1}@shop.aa"
-            password = f"pass{i+1}"
-            user = User.objects.create_user(
-                username=username, email=email, password=password)
-
-            if i < 3:
-                for j in range(10):
-                    Product.objects.create(
-                        title=f"product {j+1} from {username}",
-                        description=f"description for product {j+1}",
-                        price=f"{(j+1)*10}.00",
-                        seller=user
-                    )
-
-        return JsonResponse({"message": "database populated with test data"})
+        try:
+            OrderItem.objects.all().delete()
+            Order.objects.all().delete()
+            CartItem.objects.all().delete()
+            Cart.objects.all().delete()
+            ShippingAddress.objects.all().delete()
+            Product.objects.all().delete()
+            User.objects.all().delete()
+            
+            for i in range(6):
+                username = f"testuser{i+1}"
+                email = f"{username}@shop.aa"
+                password = f"pass{i+1}"
+                user = User.objects.create_user(username=username, email= email, password= password)
+                
+                if i<3:
+                    for j in range(10):
+                        Product.objects.create(
+                            title=f"product {j+1} from {username}",
+                            description=f"description for product {j+1}",
+                            price=f"{(j+1)*10}.00",
+                            seller=user
+                        )
+            return JsonResponse({"message": "database populated with test data"})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            
     
 
 def populate_database(request):
     if request.method == "POST":
         try:
-            # Clear existing data
-            User.objects.all().delete()
+            OrderItem.objects.all().delete()
+            Order.objects.all().delete()
+            CartItem.objects.all().delete()
+            Cart.objects.all().delete()
+            ShippingAddress.objects.all().delete()
             Product.objects.all().delete()
-
-            # Create users and products
+            User.objects.all().delete()
+            
             for i in range(6):
-                base_username = f"testuser{i+1}"
-                username = base_username
-                count = 1
-                while User.objects.filter(username=username).exists():
-                    username = f"{base_username}_{count}"
-                    count += 1
-
+                username = f"testuser{i+1}"
                 email = f"{username}@shop.aa"
                 password = f"pass{i+1}"
+                user = User.objects.create_user(username=username, email= email, password= password)
                 
-                user = User.objects.create_user(
-                    username=username, email=email, password=password)
-
-                if i < 3:
+                if i<3:
                     for j in range(10):
                         Product.objects.create(
                             title=f"product {j+1} from {username}",
@@ -280,9 +283,5 @@ class ShippingAddressView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ShippingAddressSerializer
 
-class UserDetailsView(generics.RetrieveAPIView):
-    serializer_class = UserRetrieveSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_object(self):
-        return self.request.user
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer

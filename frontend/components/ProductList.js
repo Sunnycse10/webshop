@@ -6,53 +6,34 @@ import ProductImage from './productImage';
 import { useState, useEffect, MouseEvent } from 'react';
 import { useRouter } from 'next/router';
 import '../styles/main.css';
+import { useSession } from 'next-auth/react';
+import { toast } from 'react-toastify';
 
 const ProductList = ({ products }) => {
   const [cart, setCart] = useState([]);
   const [error, setError] = useState(null);
   const { cartCount, updateCartCount } = useContext(CartContext);
   const [user, setUSer] = useState(null);
+  const { data: session, status } = useSession();
   const router = useRouter();
 
 
   useEffect(() => {
-    const authenticatedUser = JSON.parse(localStorage.getItem('user'));
-    console.log("hello");
-    if (authenticatedUser) {
-      const fetchUser = async () => {
-        const res = await fetch("http://localhost:8000/api/user/",
-          {
-            method: "GET",
-            headers: {
-              'content-Type': 'application/json',
-              'Authorization': `token ${authenticatedUser.token}`,
-
-            }
-          });
-        const userDetails = await res.json();
-        console.log(userDetails);
-        setUSer(userDetails);
-
-      };
-      fetchUser();
+    if (status === 'authenticated' && session?.user?.id) {
+      setUSer(session.user.id);
     }
 
-  }, [])
+  }, [status,session])
 
 
 
   const addToCart = async (productId) => {
-    const authenticatedUser = JSON.parse(localStorage.getItem('user'));
-    if (!authenticatedUser) {
-      router.push('/login');
-      return;
-    }
     try {
       const res = await fetch('http://localhost:8000/api/cart/add/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `token ${authenticatedUser.token}`,
+          'Authorization': `Bearer ${session.access}`,
 
         },
         body: JSON.stringify({ product_id: productId }),
@@ -61,13 +42,13 @@ const ProductList = ({ products }) => {
       if (!res.ok) {
         const errorData = await res.json();
         console.error('Error adding to cart:', errorData.detail || 'Unknown error');
-        alert(errorData.detail || 'Unknown error');
+        toast.error(`${ errorData.detail || 'Unknown error' }`);
         return;
       }
       const data = await res.json();
       setCart(data.cart.items);
       updateCartCount(data.cart.items.length);
-      alert("product added to the cart");
+      toast.success("product added to the cart");
     } catch (error) {
       setError(error.message);
     }
@@ -85,7 +66,7 @@ const ProductList = ({ products }) => {
             <hr />
             {product.status === "on-sale" ? <button className="btn btn-outline-secondary bt-add" onClick={() => addToCart(product.id)}>Add to cart</button> :
               <span>Sold out</span>}
-            {user && user.id === product.seller && product.status === "on-sale" &&
+            {user && user === product.seller && product.status === "on-sale" &&
               <Link className="btn btn-outline-success" href={{ pathname: '/product', query: { product: JSON.stringify(product.id) } }}>Edit</Link>}
             <h4 style={{ display: 'inline - block', float: 'right' }}><strong>{`${product.price} ${product.price_currency}`}</strong></h4>
           </div>

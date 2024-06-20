@@ -3,38 +3,48 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Layout from '../components/Layout';
 import ProductList from '../components/ProductList';
+import { useSession } from 'next-auth/react';
 
 const MyItems = () => {
     const [purchasedProducts, setPurchasedProducts] = useState([]);
+    const [error, setError] = useState(null);
     const [onSaleProducts, setOnSaleProducts] = useState([]);
     const [soldProducts, setSoldProducts] = useState([]);
     const router = useRouter();
+    const { data: session, status } = useSession();
+
 
 
     useEffect(() => {
-        const authenticatedUser = JSON.parse(localStorage.getItem('user'));
-        if (!authenticatedUser) {
-            router.push('/login');
-            return;
-        }
         const fetchItems = async () => {
-            const res = await fetch("http://localhost:8000/api/myItems/", {
-                method: "GET",
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `token ${authenticatedUser.token}`,
-                },
+            try {
+                const res = await fetch("http://localhost:8000/api/myItems/", {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access}`,
+                    },
                 
-            });
-            const data = await res.json();
-            console.log(data);
-            setPurchasedProducts(data.item_purchased);
-            setSoldProducts(data.item_sold);
-            setOnSaleProducts(data.item_on_sale);
+                });
+                const data = await res.json();
+                setPurchasedProducts(data.item_purchased);
+                setSoldProducts(data.item_sold);
+                setOnSaleProducts(data.item_on_sale);
+            } catch (e) {
+                setError(e);
+
+            }
         };
-        fetchItems();
+        if (session) {
+            fetchItems();
+        }
         
-    }, []);
+    }, [session]);
+
+    if (error) {
+        return <div>Error: {error.message}</div>;
+
+    }
 
     return (
         <Layout>

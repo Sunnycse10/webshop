@@ -1,27 +1,23 @@
 import { useState } from "react";
 import Layout from "../components/Layout";
-import {  useRouter } from "next/router";
-
+import { useRouter } from "next/router";
+import { useSession } from 'next-auth/react';
+import { toast } from 'react-toastify';
 const editAccount = () => {
 
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
+    const { data: session, status } = useSession();
     const router = useRouter()
 
     const handleSubmit = async (e) => {
-        debugger;
         e.preventDefault();
-        const authenticatedUser = JSON.parse(localStorage.getItem('user'));
-        if (!authenticatedUser)
-        {
-            router.push("/login")
-            return;
-            }
+
         const res = await fetch('http://localhost:8000/api/change-password/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `token ${authenticatedUser.token}`
+                'Authorization': `Bearer ${session.access}`
                 
             },
             body: JSON.stringify({
@@ -32,10 +28,10 @@ const editAccount = () => {
         const message = await res.json()
 
         if (!res.ok) {
-            alert(message.detail || "something went wrong");
+            toast.error(`${message.detail || "something went wrong"}`);
         }
         else {
-            alert("password changed successfully");
+            toast.success("password changed successfully");
             router.push("/");
         }
     };

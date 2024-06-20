@@ -1,12 +1,14 @@
 // components/Layout.js
 import Link from 'next/link';
 import Head from 'next/head';
+import { SessionProvider } from 'next-auth/react';
 import { useContext } from 'react';
 import { CartContext } from '../contexts/CartContext';
-
+import { useSession, signIn, signOut } from "next-auth/react"
 import { useState, useEffect, MouseEvent } from 'react';
 import { useRouter } from 'next/router';
 import '../styles/main.css';
+import { toast } from 'react-toastify';
 
 const Layout = ({ children }) => {
   const router = useRouter();
@@ -14,7 +16,8 @@ const Layout = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const { cartCount, resetCartCount } = useContext(CartContext);
-
+  const { data: session, status } = useSession();
+    
   const toggleDropdown = (e) => {
     e.preventDefault();
     setIsOpen(!isOpen);
@@ -24,38 +27,45 @@ const Layout = ({ children }) => {
     setIsOpen(false);
   }
 
-  useEffect(() => {
-    // Check if the user is authenticated
-    // This is just a placeholder, replace it with your actual authentication logic
-    const authenticatedUser = JSON.parse(localStorage.getItem('user'));
-    setUser(authenticatedUser);
-  }, []);
-
-  const handleLogout = () => {
-    // Handle user logout
-    // This is just a placeholder, replace it with your actual logout logic
-    localStorage.removeItem('user');
-    resetCartCount();
-    router.push('/login');
+  const handleLogout = (e) => {
+    e.preventDefault();
+    logout();
   };
+
+  const logout = () => {
+    resetCartCount();
+    signOut({ redirect: false })
+      .then(() =>
+      {
+        router.push("/login");
+      })
+      .catch((error) =>
+      {
+        toast.error("sign out error: ");
+      });
+
+  }
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // Perform search action, e.g., redirect to a search results page
     router.push(`/search?query=${searchQuery}`);
   };
   const populateDB = async (e) => {
     e.preventDefault();
     const res = await fetch("http://localhost:8000/api/populate-db/", {
-      method: 'POST', // Assuming it's a POST request
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       }
     });
+    const message = await res.json();
     if (res.ok) {
-      const message = await res.json();
-      alert(message.message);
-      handleLogout();
+      toast.success(`${message.message}`);
+      logout();
+
+    }
+    else {
+      toast.error(`${message.error}`);
 
     }
 
@@ -87,8 +97,6 @@ const Layout = ({ children }) => {
                 </a>
 
               </li>
-              {user && (
-                <>
                   <li className="nav-item">
                     <Link href="/myitems" passHref>
                       <span className="nav-link">My Items</span>
@@ -99,10 +107,6 @@ const Layout = ({ children }) => {
                       <span className="nav-link">Add Item</span>
                     </Link>
                   </li>
-                </>
-
-              )}
-              {user && (
                 <li className="nav-item dropdown">
                   <a className="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" onClick={toggleDropdown}>
                     Edit
@@ -112,15 +116,14 @@ const Layout = ({ children }) => {
                     <a className="dropdown-item" href="#">Add more feature </a>
                   </div>
                   {isOpen && (
-                    <button type="button" // <4>
+                    <button type="button"
                       className="modal-backdrop opacity-0"
                       style={{ zIndex: 999, cursor: 'auto' }}
                       onClick={hideDropdown}>
                       Hide dropdown
                     </button>
                   )}
-                </li>
-              )}
+                  </li>
               <li className='nav-item'>
                 <form id="searchbar" className="d-flex" onSubmit={handleSearch}>
                   <input name="search"
@@ -138,7 +141,7 @@ const Layout = ({ children }) => {
               </li>
             </ul>
             <div className="d-flex">
-              {user ? (
+              {session ?.user? (
                 <button onClick={handleLogout} className="btn btn-warning">Log out</button>
               ) : (
                 <Link href="/login" passHref>

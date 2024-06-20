@@ -3,28 +3,30 @@ import { useState, useContext, useEffect } from 'react';
 import { Router, useRouter } from 'next/router';
 import { CartContext } from '../contexts/CartContext';
 import Link from "next/link";
-import ProductImage from "../components/productImage";
+import { useSession } from "next-auth/react";
+import { toast } from 'react-toastify';
 
 function Cart() {
     const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const { cartCount, updateCartCount } = useContext(CartContext);
+    const {cartCount, updateCartCount } = useContext(CartContext);
     const [cartTotal, setCartTotal] = useState(0);
     const [priceChanges, setPriceChanges] = useState([]);
     const [soldItems, setSoldItems] = useState([]);
     const [checkoutError, setCheckoutError] = useState(null);
     const router = useRouter();
+    const [user, setUSer] = useState(null);
+    const { data: session, status } = useSession();
 
 
 
     useEffect(() => {
-        const authenticatedUser = JSON.parse(localStorage.getItem('user'));
         const fetchCartItems = async () => {
             try {
                 const res = await fetch('http://localhost:8000/api/cart/', {
                     headers: {
-                        'Authorization': `token ${authenticatedUser.token}`,
+                        'Authorization': `Bearer ${session.access}`,
                     }
                 });
 
@@ -34,7 +36,6 @@ function Cart() {
 
                 const data = await res.json();
                 setCartItems(data.items || []);
-                console.log(data.items);
                 updateCartCount(data.items.length || 0);
                 setCartTotal(data.items.reduce((sum, item) => sum + Number(item.product.price), 0))  // Update cart count
                 setLoading(false);
@@ -49,13 +50,12 @@ function Cart() {
 
 
     const removeCart = async (product_id) => {
-        const authenticatedUser = JSON.parse(localStorage.getItem('user'));
         try {
             const res = await fetch("http://localhost:8000/api/cart/remove/", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `token ${authenticatedUser.token}`,
+                    "Authorization": `Bearer ${session.access}`,
                 },
                 body: JSON.stringify({ product_id }),
 
@@ -64,8 +64,6 @@ function Cart() {
             if (!res.ok) {
                 throw new Error("Failed to fetch");
             }
-            debugger;
-
             const updatedCartItems = cartItems.filter(item => item.product.id !== product_id);
             setCartItems(updatedCartItems);
             updateCartCount(updatedCartItems.length);
@@ -81,53 +79,57 @@ function Cart() {
 
     }
 
-    const handlePay = async () => {
-        const authenticatedUser = JSON.parse(localStorage.getItem('user'));
-        try {
-            const res = await fetch("http://localhost:8000/api/pay/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `token ${authenticatedUser.token}`,
-                },
+    const handlePay = async (e) => {
+        if (cartItems.length === 0) {
+            toast.error("There is no item in the cart");
+            router.push("/");
+        }
+        else {
+            try {
+                const res = await fetch("http://localhost:8000/api/pay/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${session.access}`,
+                    },
 
-            });
+                });
 
-            if (!res.ok) {
-                debugger;
-                if (res.status === 400) {
-                    const data = await res.json();
-                    setPriceChanges(data.price_changes || []);
-                    setSoldItems(data.unavailable_items || []);
-                    setCheckoutError("Status of some items are changes, please review your cart");
-                    debugger;
+                if (!res.ok) {
+            
+                    if (res.status === 400) {
+                        const data = await res.json();
+                        setPriceChanges(data.price_changes || []);
+                        setSoldItems(data.unavailable_items || []);
+                        setCheckoutError("Status of some items are changes, please review your cart");
+                
 
+                    }
+                    else {
+                        throw new Error("Failed to complete checkout");
+                    }
                 }
                 else {
-                    throw new Error("Failed to complete checkout");
+                    const data = await res.json();
+                    toast.success("items purchased successfully!");
+                    setCartItems([]);
+                    updateCartCount(0);
+                    setCartTotal(0);
+                    setLoading(false);
+
+                    //router.push("/myitems");
+
                 }
+
+            } catch (error) {
+                setError(error.message);
             }
-            else {
-                const data = await res.json();
-                console.log("successful checkout: ", data);
-                alert("items purchased successfully!");
-                setCartItems([]);
-                updateCartCount(0);
-                setCartTotal(0);
-                setLoading(false);
-
-                //router.push("/myitems");
-
-            }
-
-        } catch (error) {
-            setError(error.message);
         }
 
     }
 
     const hasPriceChanged = (productId) => {
-        debugger;
+
         return priceChanges.some(item => item.id === productId);
     }
 
